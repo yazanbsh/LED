@@ -1,5 +1,6 @@
 package com.example.yazan.led;
 
+import android.app.Activity;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -26,6 +27,7 @@ import java.util.UUID;
 
 public class ledControl extends ActionBarActivity {
 
+    String RGB="255,255,255";
     Button btnOn, btnOff, btnDis;
     SeekBar brightness;
     TextView lumn;
@@ -36,6 +38,8 @@ public class ledControl extends ActionBarActivity {
     private boolean isBtConnected = false;
     //SPP UUID. Look for it
     static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    public static String EXTRA_ADDRESS = "device_address";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -186,9 +190,34 @@ public class ledControl extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == 1) {
+            if(resultCode == Activity.RESULT_OK){
+                String result=data.getStringExtra("result");
+                RGB=result;
+                if (btSocket!=null)
+                {
+                    try
+                    {
+                        btSocket.getOutputStream().write(result.getBytes());
+                    }
+                    catch (IOException e)
+                    {
+                        msg("Error");
+                    }
+                }
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                //Write your code if there's no result
+            }
+        }
+    }//onActivityResult
+
     public void colorOnclickListner(View view) {
-        Intent intent = new Intent(ledControl.this,Colors.class);
-        startActivity(intent);
+        Intent i = new Intent(this, Colors.class);
+        startActivityForResult(i, 1);
     }
 
     private class ConnectBT extends AsyncTask<Void, Void, Void>  // UI thread
